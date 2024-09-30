@@ -1,0 +1,29 @@
+{
+  "name": "indexs-tpso-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js --exec babel-node --preset es2015,stage-2",
+    "clean": "node -e \"require('fs').existsSync('dist') ? require('child_process').execSync(process.platform === 'win32' ? 'rmdir /s /q dist' : 'rm -rf dist') : null\"",
+    "build": "babel index.js --out-dir dist",
+    "start": "npm run clean && npm run build && node dist/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "@babel/polyfill": "^7.12.1",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "nodemon": "^3.1.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "babel-cli": "^6.26.0",
+    "babel-loader": "^9.1.3"
+  }
+}
