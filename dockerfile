@@ -1,14 +1,20 @@
+# Use the official Node.js Alpine image as the base image
 FROM node:20.11.1-alpine
 
-RUN mkdir -p /api
-WORKDIR /
+# Create a directory for the application
+WORKDIR /api
 
-COPY package*.json ./api
+# Copy package.json and package-lock.json (if exists) to the working directory
+COPY package*.json ./
 
-COPY ./api .
+# Install dependencies
+RUN npm install --production
 
-RUN npm install
+# Copy the rest of the application code to the working directory
+COPY . .
 
+# Expose the application port
 EXPOSE 4000
 
-CMD [ "npm" , "start" ]
+# Command to run the application
+CMD ["npm", "start"]

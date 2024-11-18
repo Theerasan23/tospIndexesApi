@@ -1,14 +1,16 @@
+
 services:
   indexpr_api:
-      container_name: indexpr_api
-      restart: always
-      build:
-        context: .
-        dockerfile: ./dockerfile
-      ports:
-        - "4012:4000"
-      networks:
-        - theerasan-network
+    container_name: indexpr_api
+    restart: always  # Automatically restart the container if it stops
+    build:
+      context: .  # Build context set to current directory
+      dockerfile: ./dockerfile  # Ensure the filename is capitalized if your file is named Dockerfile
+    ports:
+      - "4012:4000"  # Map port 4012 on the host to port 4000 in the container
+    networks:
+      - theerasan-network
+
 networks:
   theerasan-network:
-    driver: bridge
+    driver: bridge  # Use the bridge driver for networking
