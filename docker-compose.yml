@@ -1,3 +1,4 @@
+services:
 indexs_api:
     container_name: indexs_api
     restart: always
