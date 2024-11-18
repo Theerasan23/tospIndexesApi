@@ -226,16 +226,22 @@ app.get('/moc-indexes/ppicpa', async (req, res) => {
 app.get('/moc-indexes/cmi', async (req, res) => {
 
     const start_year = 1977;
-    const base_year = 2019;
+    const base_year = 2015;
     const years = 2024
 
     const body = JSON.stringify({
-
         YearBase: null,
         TimeOption: true,
-        SpecificTimes: [[2567, 1], [2567, 7]],
+        Period: {
+            "StartYear": 2544,
+            "StartMonth": 1,
+            "EndYear": 2590,
+            "EndMonth": 12
+        },
         Categories: ["0"]
     });
+
+   
 
     const url = 'https://index-api.tpso.go.th/api/cmi/filter';
 
@@ -260,9 +266,7 @@ app.get('/moc-indexes/cmi', async (req, res) => {
 
                 return yearData.months.map(monthData => ({
                     index_id: commodity.commodityCode.padStart(16, '0'),
-                    index_description: "รวมทุกรายการ",
-                    region_id: 5,
-                    region_name: "ประเทศ",
+                    index_description: commodity.commodityNameTH,
                     base_year: base_year,
                     year: yearData.year - 543,
                     month: monthData.month,
@@ -287,7 +291,7 @@ app.get('/moc-indexes/cmi', async (req, res) => {
     }
 });
 
-app.get('/api/cci', async (req, res) => {
+app.get('/moc-indexes/cci', async (req, res) => {
 
     const start_year = 1977;
     const base_year = 2019;
@@ -296,7 +300,7 @@ app.get('/api/cci', async (req, res) => {
 
         SpecificTimes: [
             [2565, 3],
-            [2567, 9]
+            [2568, 9]
         ],
         TimeOption: true,
         Types: ["CPA"],
@@ -359,9 +363,9 @@ app.get('/moc-indexes/imi', async (req, res) => {
     const body = JSON.stringify({
         YearBase: null,
         Period: {
-            StartYear: 2567,
+            StartYear: 2540,
             StartMonth: 1,
-            EndYear: 2567,
+            EndYear: 2580,
             EndMonth: 12
         },
         TimeOption: true,
@@ -417,6 +421,76 @@ app.get('/moc-indexes/imi', async (req, res) => {
         return res.status(500).json({ error: error.message });
     }
 });
+
+
+
+app.get('/moc-indexes/exi', async (req, res) => {
+
+    const start_year = 1977;
+    const base_year = 2019;
+    const years = 2024
+    const body = JSON.stringify({
+        YearBase: null,
+        Period: {
+            StartYear: 2540,
+            StartMonth: 1,
+            EndYear: 2580,
+            EndMonth: 12
+        },
+        TimeOption: true,
+        Types: ["EXI"],
+        Categories: ["000"]
+    });
+    const url = 'https://index-api.tpso.go.th/api/imex/filter';
+    try {
+        const result = await axios.post(url, body, {
+            headers: {
+                "Accept": "*/*",
+                "User-Agent": "tpso (https://tpso.go.th/)",
+                "Content-Type": "application/json",
+                "Authorization": `${bearor}`
+            },
+            imeout: 10000
+        });
+
+        const commodities = await result.data;
+        if (!Array.isArray(commodities) || commodities.length === 0) {
+            return res.status(404).json({ message: 'No commodities found' });
+        }
+        const generateData = commodities.flatMap(commodity => {
+
+            return commodity.years.flatMap(yearData => {
+
+                return yearData.months.map(monthData => ({
+                    
+                    index_id: commodity.commodityCode.padStart(16, '0'),
+                    index_description: "รวมทุกรายการ",
+                    region_id: 5,
+                    region_name: "ประเทศ",
+                    base_year: base_year,
+                    year: yearData.year - 543,
+                    month: monthData.month,
+                    price_index: monthData.indexD,
+                    mon: monthData.changeD,
+                    yoy: monthData.changeYearD,
+                    aoa: monthData.changeAVGD,
+                }));
+            });
+        });
+
+        const sortedData = generateData.sort((a, b) => {
+            if (a.year === b.year) {
+                return a.month - b.month;
+            }
+            return a.year - b.year;
+        });
+
+        return res.json(sortedData);
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+});
+
 
 
 app.listen(PORT, () => {
