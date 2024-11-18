@@ -1,3 +1,4 @@
+const https = require('https');
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -293,56 +294,37 @@ app.get('/moc-indexes/cmi', async (req, res) => {
 
 app.get('/moc-indexes/cci', async (req, res) => {
 
-    const start_year = 1977;
-    const base_year = 2019;
-    const years = 2024
     const body = JSON.stringify({
-
-        SpecificTimes: [
-            [2565, 3],
-            [2568, 9]
-        ],
-        TimeOption: true,
-        Types: ["CPA"],
-        Categories: ["0000",]
-    });
-    const url = 'https://index-api.tpso.go.th/api/ppi/filter';
+            startyear: 2565,
+            endyear: 2567,
+            type: 1
+        });
+    const url = 'https://cci-survey-tpso.moc.go.th/cci-api/api/CCI/getcci';
     try {
         const result = await axios.post(url, body, {
             headers: {
                 "Accept": "*/*",
                 "User-Agent": "tpso (https://tpso.go.th/)",
-                "Content-Type": "application/json",
-                "Authorization": `${bearor}`
+                "Content-Type": "application/json"
             },
-            imeout: 10000
+            timeout: 10000,
+            httpsAgent: new https.Agent({ rejectUnauthorized: false })
         });
-
-        const commodities = await result.data;
+    
+        const commodities = await result.data.Value;
         if (!Array.isArray(commodities) || commodities.length === 0) {
             return res.status(404).json({ message: 'No commodities found' });
         }
-        const generateData = commodities.flatMap(commodity => {
 
-            return commodity.years.flatMap(yearData => {
+        const transformedData = result.data.Value.map(item => ({
+            year: item.YEAR_NAME -543, 
+            month: item.MONTH_ID || '',
+            index_all: item.INX,
+            index_current: item.PRST,
+            index_future: item.FURT
+        }));
 
-                return yearData.months.map(monthData => ({
-                    index_id: commodity.commodityCode.padStart(16, '0'),
-                    index_description: "รวมทุกรายการ",
-                    region_id: 5,
-                    region_name: "ประเทศ",
-                    base_year: base_year,
-                    year: yearData.year - 543,
-                    month: monthData.month,
-                    price_index: monthData.index,
-                    mon: monthData.change,
-                    yoy: monthData.changeYear,
-                    aoa: monthData.changeAVG,
-                }));
-            });
-        });
-
-        const sortedData = generateData.sort((a, b) => {
+        const sortedData = transformedData.sort((a, b) => {
             if (a.year === b.year) {
                 return a.month - b.month;
             }
@@ -351,7 +333,7 @@ app.get('/moc-indexes/cci', async (req, res) => {
 
         return res.json(sortedData);
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        return res.status(500).json({ error: error });
     }
 });
 
