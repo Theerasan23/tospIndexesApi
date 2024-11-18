@@ -5,4 +5,4 @@ indexs_api:
       context: .
       dockerfile: dockerfile
     ports:
-      - "4000:4000"
+      - "4012:4000"
