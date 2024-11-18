@@ -1,9 +1,14 @@
 services:
-indexs_api:
-    container_name: indexs_api
-    restart: always
-    build:
-      context: .
-      dockerfile: dockerfile
-    ports:
-      - "4012:4000"
+  indexpr_api:
+      container_name: indexpr_api
+      restart: always
+      build:
+        context: .
+        dockerfile: ./dockerfile
+      ports:
+        - "4012:4000"
+      networks:
+        - theerasan-network
+networks:
+  theerasan-network:
+    driver: bridge
